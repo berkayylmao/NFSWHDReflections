@@ -79,7 +79,7 @@ static void Main(HMODULE hModule) {
   thread_local rapidjson::Document _config;
   static constexpr char            _configFileName[] = "NFSWHDReflections.json";
   static constexpr char            _configDefFile[] =
-      R"({"ReflectionResolution":2048,"BetterReflectionLODs":true,"BetterReflectionDrawDistance":{"Enabled":true,"DrawDistance":16000.0},"BetterChrome":{"Enabled":true,"Saturation":0.075,"ReflectionIntensity":6.75}})";
+      R"({"ReflectionResolution":2048,"BetterReflectionLODs":true,"BetterReflectionDrawDistance":{"Enabled":true,"DrawDistance":2400.0},"BetterChrome":{"Enabled":true,"Saturation":0.075,"ReflectionIntensity":6.75}})";
 
   // Config
   {
