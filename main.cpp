@@ -38,6 +38,7 @@
 #include <cstdint>    // integer types
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <string>
 #include <thread>
 
@@ -78,7 +79,7 @@ static void Main(HMODULE hModule) {
   thread_local rapidjson::Document _config;
   static constexpr char            _configFileName[] = "NFSWHDReflections.json";
   static constexpr char            _configDefFile[] =
-      R"({"ReflectionResolution":1024,"BetterReflectionLODs":true,"BetterReflectionDrawDistance":true,"BetterChrome":{"Enabled":true,"Saturation":0.075,"ReflectionIntensity":6.75}})";
+      R"({"ReflectionResolution":2048,"BetterReflectionLODs":true,"BetterReflectionDrawDistance":{"Enabled":true,"DrawDistance":16000.0},"BetterChrome":{"Enabled":true,"Saturation":0.075,"ReflectionIntensity":6.75}})";
 
   // Config
   {
@@ -132,10 +133,15 @@ static void Main(HMODULE hModule) {
   }
 
   // Better reflection draw distance
-  if (_config["BetterReflectionDrawDistance"].GetBool()) {
-    AllAccess _a1(0x882D44, sizeof(float));
+  {
+    const auto& _dd = _config["BetterReflectionDrawDistance"];
 
-    *reinterpret_cast<float*>(_a1.mAddr) = 16000.0f;
+    if (_dd["Enabled"].GetBool()) {
+      AllAccess _a1(0x882D44, sizeof(float));
+
+      *reinterpret_cast<float*>(_a1.mAddr) =
+          static_cast<float>(std::clamp(_dd["DrawDistance"].GetDouble(), 0.0, std::numeric_limits<double>::max()));
+    }
   }
 
   // Better chrome
