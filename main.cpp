@@ -50,7 +50,7 @@
 #pragma warning(pop)  // re-enable warnings
 
 inline DWORD makeabs(DWORD rva) {
-  static const auto _base = reinterpret_cast<DWORD>(GetModuleHandle(NULL));
+  static const auto _base = reinterpret_cast<DWORD>(::GetModuleHandle(NULL));
   return _base + rva;
 }
 
@@ -64,13 +64,13 @@ struct AllAccess {
     mAddr = reinterpret_cast<LPVOID>(rva);
     mSize = size;
 
-    VirtualProtect(mAddr, mSize, PAGE_EXECUTE_READWRITE, &mOldProtect);
+    ::VirtualProtect(mAddr, mSize, PAGE_EXECUTE_READWRITE, &mOldProtect);
   }
   explicit AllAccess(DWORD rva, std::size_t size) : AllAccess(rva, size, true) {}
 
   ~AllAccess() {
     DWORD _dummy;
-    VirtualProtect(mAddr, mSize, mOldProtect, &_dummy);
+    ::VirtualProtect(mAddr, mSize, mOldProtect, &_dummy);
   }
 };
 
@@ -78,7 +78,7 @@ static void Main(HMODULE hModule) {
   thread_local rapidjson::Document _config;
   static constexpr char            _configFileName[] = "NFSWHDReflections.json";
   static constexpr char            _configDefFile[] =
-      R"({"ReflectionResolution":2048,"BetterReflectionLODs":true,"BetterReflectionDrawDistance":true,"BetterChrome":{"Enabled":true,"Saturation":0.075,"ReflectionIntensity":6.75}})";
+      R"({"ReflectionResolution":1024,"BetterReflectionLODs":true,"BetterReflectionDrawDistance":true,"BetterChrome":{"Enabled":true,"Saturation":0.075,"ReflectionIntensity":6.75}})";
 
   // Config
   {
@@ -113,13 +113,11 @@ static void Main(HMODULE hModule) {
 
   // Reflection resolution
   {
-    const std::uint32_t _scale = _config["ReflectionResolution"].GetUint();
-
     AllAccess _a1(0x22CA04, sizeof(std::uint16_t));
     AllAccess _a2(0x22CA07, sizeof(std::uint32_t));
 
     *reinterpret_cast<std::uint16_t*>(_a1.mAddr) = 0x9090;
-    *reinterpret_cast<std::uint32_t*>(_a2.mAddr) = _scale;
+    *reinterpret_cast<std::uint32_t*>(_a2.mAddr) = _config["ReflectionResolution"].GetUint();
   }
 
   // Better reflection LODs
@@ -172,7 +170,7 @@ static void Main(HMODULE hModule) {
 // win32 entry
 BOOL WINAPI DllMain(const HMODULE hModule, const DWORD ul_reason_for_call, LPCVOID) {
   if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
-    DisableThreadLibraryCalls(hModule);
+    ::DisableThreadLibraryCalls(hModule);
     std::thread(Main, hModule).detach();
   }
   return TRUE;
